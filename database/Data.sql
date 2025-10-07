@@ -1,0 +1,8 @@
+CREATE DATABASE project;
+USE project;
+CREATE TABLE users(
+user_id INT AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR(50),
+email VARCHAR(100) UNIQUE,
+password VARCHAR(100)
+);
