@@ -1,0 +1,648 @@
+// dont use this . this is just a source code
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 15px rgba(220, 38, 38, 0.4); /* Crimson red glow */
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(220, 38, 38, 0.7); /* Stronger crimson red glow */
+            }
+        }
+        .input-glow-persistent {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+        .themed-background {
+             background-color: #110d0d; /* Dark red-tinged base */
+             background-image:
+                radial-gradient(at 0% 100%, hsla(0, 40%, 15%, 1) 0px, transparent 50%),
+                radial-gradient(at 90% 10%, hsla(350, 40%, 15%, 1) 0px, transparent 50%);
+        }
+        /* Custom styles for range input */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #DC2626; /* Crimson Red */
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #DC2626; /* Crimson Red */
+            cursor: pointer;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 font-sans themed-background">
+
+    <!-- LOGIN PAGE CONTAINER -->
+    <div id="login-page">
+        <div class="flex items-center justify-center min-h-screen">
+          <div class="w-full max-w-md p-8 space-y-8 bg-gray-800 rounded-2xl shadow-lg border border-gray-700">
+            <div class="text-center">
+              <h2 class="mt-6 text-3xl font-extrabold text-white">Attendance Tracker</h2>
+              <p class="mt-2 text-sm text-gray-400" id="auth-mode-subtitle">Sign in to manage your schedule</p>
+            </div>
+            <form class="mt-8 space-y-6" id="auth-form">
+              <div class="relative">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute top-3.5 left-4 w-5 h-5 text-gray-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <input id="email-input" type="email" required class="w-full pl-12 pr-4 py-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition duration-300 input-glow-persistent" placeholder="Email address">
+              </div>
+              <div class="relative">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute top-3.5 left-4 w-5 h-5 text-gray-400"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <input id="password-input" type="password" required class="w-full pl-12 pr-4 py-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition duration-300 input-glow-persistent" placeholder="Password">
+              </div>
+              <div class="relative hidden" id="confirm-password-field">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute top-3.5 left-4 w-5 h-5 text-gray-400"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  <input id="confirm-password-input" type="password" class="w-full pl-12 pr-4 py-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition duration-300 input-glow-persistent" placeholder="Confirm Password">
+              </div>
+              <p class="text-sm text-red-400 text-center" id="auth-error"></p>
+              <div>
+                <button type="submit" id="auth-submit-button" class="w-full py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500 transition duration-200">
+                  Sign In
+                </button>
+              </div>
+            </form>
+             <p class="text-sm text-center text-gray-400">
+                <span id="auth-toggle-text">Don't have an account?</span>
+                <button id="auth-toggle-button" class="font-medium text-red-400 hover:text-red-300 ml-2">
+                  Sign Up
+                </button>
+            </p>
+          </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER (HIDDEN INITIALLY) -->
+    <div id="main-app" class="hidden">
+        <nav class="bg-gray-800/80 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                  <span class="font-bold text-xl text-white">Attendance Tracker</span>
+                </div>
+                <div class="hidden md:block">
+                  <div class="ml-10 flex items-baseline space-x-4">
+                    <button data-page="timetable" class="nav-button capitalize px-3 py-2 rounded-md text-sm font-medium transition-colors bg-gray-900 text-white">Timetable</button>
+                    <button data-page="report" class="nav-button capitalize px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-300 hover:bg-gray-700 hover:text-white">Report</button>
+                    <button data-page="calculator" class="nav-button capitalize px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-300 hover:bg-gray-700 hover:text-white">Calculator</button>
+                    <button data-page="upload" class="nav-button capitalize px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-300 hover:bg-gray-700 hover:text-white">Upload</button>
+                  </div>
+                </div>
+                <div>
+                  <button id="logout-button" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-red-600 hover:text-white transition-colors">
+                    Logout
+                  </button>
+                </div>
+              </div>
+            </div>
+        </nav>
+        <main id="main-content">
+            <!-- Content will be injected here by JS -->
+        </main>
+    </div>
+
+    <!-- MODALS (HIDDEN INITIALLY) -->
+    <div id="edit-lecture-modal" class="hidden fixed inset-0 bg-black/60 items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-gray-800 rounded-2xl p-8 border border-gray-700 w-full max-w-md m-4">
+            <h2 class="text-2xl font-bold text-white mb-6" id="modal-title">Edit Lecture</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-400 block mb-2">Subject</label>
+                    <input type="text" id="modal-subject" class="w-full p-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 outline-none input-glow-persistent" />
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-400 block mb-2">Time (e.g., 09:00 - 10:00)</label>
+                    <input type="text" id="modal-time" class="w-full p-3 text-white bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 outline-none input-glow-persistent" />
+                </div>
+            </div>
+            <div class="mt-8 flex justify-end space-x-4">
+                <button id="modal-cancel" class="px-4 py-2 font-semibold text-gray-300 bg-gray-700 rounded-lg hover:bg-gray-600 transition">Cancel</button>
+                <button id="modal-save" class="px-4 py-2 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="delete-confirm-modal" class="hidden fixed inset-0 bg-black/60 items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-gray-800 rounded-2xl p-8 border border-gray-700 w-full max-w-sm m-4">
+            <h2 class="text-xl font-bold text-white mb-4">Are you sure?</h2>
+            <p class="text-gray-400 mb-6">This action will permanently delete the lecture from your timetable.</p>
+            <div class="flex justify-end space-x-4">
+                <button id="delete-cancel" class="px-4 py-2 font-semibold text-gray-300 bg-gray-700 rounded-lg hover:bg-gray-600 transition">Cancel</button>
+                <button id="delete-confirm" class="px-4 py-2 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition">Confirm Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script type="module">
+        // --- DATA STORE ---
+        let timetableData;
+        const defaultTimetableData = {
+          Monday: [
+            { id: 'mon-1', time: '09:00 - 10:00', subject: 'Quantum Physics', status: 'Scheduled' },
+            { id: 'mon-2', time: '10:00 - 11:00', subject: 'Data Structures', status: 'Scheduled' },
+          ],
+          Tuesday: [{ id: 'tue-1', time: '10:00 - 11:00', subject: 'Web Development', status: 'Scheduled' }],
+          Wednesday: [{ id: 'wed-1', time: '11:00 - 12:00', subject: 'Machine Learning', status: 'Scheduled' }],
+          Thursday: [{ id: 'thu-1', time: '09:00 - 10:00', subject: 'Quantum Physics', status: 'Scheduled' }],
+          Friday: [{ id: 'fri-1', time: '10:00 - 11:00', subject: 'Data Structures', status: 'Scheduled' }],
+          Saturday: [],
+          Sunday: [],
+        };
+        
+        // --- PERSISTENCE FUNCTIONS ---
+        function loadData() {
+            const savedData = localStorage.getItem('attendanceTrackerData');
+            if (savedData) {
+                timetableData = JSON.parse(savedData);
+            } else {
+                timetableData = defaultTimetableData;
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('attendanceTrackerData', JSON.stringify(timetableData));
+        }
+
+        // --- STATE MANAGEMENT ---
+        let currentPage = 'upload';
+        let authMode = 'login'; // 'login' or 'signup'
+        let editingLectureInfo = null;
+        let deletingLectureInfo = null;
+        let isTimetableEditMode = false;
+
+        // --- DOM ELEMENTS ---
+        const loginPage = document.getElementById('login-page');
+        const mainApp = document.getElementById('main-app');
+        const mainContent = document.getElementById('main-content');
+        const navButtons = document.querySelectorAll('.nav-button');
+
+        // --- TEMPLATES (HTML GENERATORS) ---
+        const getTimetableHTML = () => {
+            const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+            const getStatusColor = (status) => {
+              switch (status) {
+                case 'Present': return 'bg-green-500/20 text-green-300 border-green-500/30';
+                case 'Absent': return 'bg-red-500/20 text-red-300 border-red-500/30';
+                case 'Cancelled': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+                default: return 'bg-gray-800/50 text-gray-400 border-gray-700';
+              }
+            };
+            
+            return `
+                <div class="p-4 sm:p-6 md:p-8">
+                  <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold text-white">Weekly Timetable</h1>
+                    <button id="toggle-edit-timetable" class="px-4 py-2 font-semibold text-white ${isTimetableEditMode ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} rounded-lg transition-colors">
+                      ${isTimetableEditMode ? 'Save Changes' : 'Edit Timetable'}
+                    </button>
+                  </div>
+                  <div class="overflow-x-auto">
+                    <div class="grid grid-cols-5 min-w-[1000px]">
+                      ${daysOfWeek.map(day => `
+                        <div class="flex flex-col border-l border-gray-700 first:border-l-0">
+                          <h2 class="text-xl font-bold text-white text-center py-3 bg-gray-800">${day}</h2>
+                          <div class="p-2 space-y-2 bg-gray-800/50 flex-grow min-h-[200px]">
+                            ${timetableData[day].length > 0 ? timetableData[day].map(lec => `
+                              <div class="p-3 rounded-lg border ${getStatusColor(lec.status)}">
+                                <div class="flex items-center mb-2">
+                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2 text-gray-400 flex-shrink-0"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                   <p class="font-mono text-sm text-gray-300 truncate">${lec.time}</p>
+                                </div>
+                                <div class="flex items-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2 text-gray-400 flex-shrink-0"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                                  <h3 class="font-semibold text-white truncate">${lec.subject}</h3>
+                                </div>
+                                <div class="flex items-center space-x-2 mt-3">
+                                    <select data-day="${day}" data-id="${lec.id}" class="status-select flex-grow w-full bg-gray-700/80 text-white border border-gray-600 rounded-md py-1 px-2 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+                                      <option value="Scheduled" ${lec.status === 'Scheduled' ? 'selected' : ''}>Scheduled</option>
+                                      <option value="Present" ${lec.status === 'Present' ? 'selected' : ''}>Present</option>
+                                      <option value="Absent" ${lec.status === 'Absent' ? 'selected' : ''}>Absent</option>
+                                      <option value="Cancelled" ${lec.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                                    </select>
+                                    ${isTimetableEditMode ? `
+                                        <button data-day="${day}" data-id="${lec.id}" class="edit-button p-1.5 text-gray-400 hover:text-white bg-gray-700/80 rounded-md border border-gray-600 hover:bg-gray-600 transition">
+                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                        </button>
+                                        <button data-day="${day}" data-id="${lec.id}" class="delete-button p-1.5 text-red-400 hover:text-white bg-gray-700/80 rounded-md border border-gray-600 hover:bg-red-500/50 transition">
+                                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                              </div>
+                            `).join('') : '<div class="text-center text-gray-500 p-4 h-full flex items-center justify-center">No classes</div>'}
+                            ${isTimetableEditMode ? `
+                              <button data-day="${day}" class="add-lecture-button w-full mt-2 flex items-center justify-center p-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors">
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                                  Add Lecture
+                              </button>
+                            ` : ''}
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                </div>
+            `;
+        };
+        
+        const getUploadHTML = () => `
+            <div class="p-4 sm:p-6 md:p-8">
+              <h1 class="text-3xl font-bold text-white mb-6">Upload Timetable</h1>
+              <div class="bg-gray-800 border-2 border-dashed border-gray-600 rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[300px]">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-16 h-16 text-gray-500 mb-4"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="m16 16-4-4-4 4"></path></svg>
+                <label for="file-upload" class="cursor-pointer font-semibold text-red-400 hover:text-red-300">
+                  <span>Upload a PDF file</span>
+                  <input id="file-upload" name="file-upload" type="file" class="sr-only" accept=".pdf">
+                </label>
+                <p class="mt-2 text-xs text-gray-500" id="file-name-display">No file selected</p>
+              </div>
+              <div class="mt-8 text-center hidden" id="process-button-container">
+                <button id="process-button" class="px-8 py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-red-500 transition duration-200">
+                  Process Timetable
+                </button>
+              </div>
+            </div>
+        `;
+
+        const getReportHTML = () => {
+            let lecturesHappened = 0, present = 0, absent = 0, cancelled = 0, overallScheduled = 0;
+            Object.values(timetableData).forEach(day => day.forEach(lec => {
+                overallScheduled++;
+                if(lec.status !== 'Scheduled' && lec.status !== 'Cancelled') lecturesHappened++;
+                if(lec.status === 'Present') present++;
+                if(lec.status === 'Absent') absent++;
+                if(lec.status === 'Cancelled') cancelled++;
+            }));
+            const percentage = lecturesHappened > 0 ? (present / lecturesHappened) * 100 : 0;
+            const color = percentage >= 75 ? 'text-green-400 stroke-green-400' : percentage >= 50 ? 'text-yellow-400 stroke-yellow-400' : 'text-red-400 stroke-red-400';
+            const bgColor = percentage >= 75 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500';
+
+            const requiredPercentage = 75;
+            let goalMessage = '';
+            let goalColor = 'border-gray-700';
+            let goalTextColor = 'text-gray-400';
+
+            if (lecturesHappened > 0) {
+                if (percentage >= requiredPercentage) {
+                    let classesToMiss = 0;
+                    while (((present) / (lecturesHappened + classesToMiss + 1)) * 100 >= requiredPercentage) {
+                        classesToMiss++;
+                    }
+                    goalMessage = `You can miss the next <span class="font-bold text-white text-3xl">${classesToMiss}</span> classes.`;
+                    goalColor = 'border-green-500/30';
+                    goalTextColor = 'text-green-300';
+                } else {
+                    let classesToAttend = 0;
+                    while (((present + classesToAttend) / (lecturesHappened + classesToAttend)) * 100 < requiredPercentage) {
+                        classesToAttend++;
+                    }
+                    goalMessage = `You need to attend the next <span class="font-bold text-white text-3xl">${classesToAttend}</span> classes.`;
+                    goalColor = 'border-yellow-500/30';
+                    goalTextColor = 'text-yellow-300';
+                }
+            } else {
+                goalMessage = `Attend classes to see your progress towards the ${requiredPercentage}% goal.`;
+            }
+
+            return `
+                <div class="p-4 sm:p-6 md:p-8">
+                    <h1 class="text-3xl font-bold text-white mb-6">Attendance Report</h1>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="md:col-span-2 lg:col-span-3 bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                           <div class="flex justify-between items-center mb-2">
+                             <h3 class="text-gray-400 text-sm font-medium">Overall Attendance</h3>
+                             <span class="font-bold text-lg ${color}">${percentage.toFixed(1)}%</span>
+                           </div>
+                           <div class="w-full bg-gray-700 rounded-full h-2.5">
+                             <div class="${bgColor} h-2.5 rounded-full" style="width: ${percentage}%"></div>
+                           </div>
+                        </div>
+                        
+                        <div class="md:col-span-2 lg:col-span-3 bg-gray-800 p-6 rounded-2xl border ${goalColor}">
+                           <h3 class="${goalTextColor} text-sm font-medium mb-2">Status for ${requiredPercentage}% Goal</h3>
+                           <p class="text-lg text-gray-300">${goalMessage}</p>
+                        </div>
+
+                        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700"><h3 class="text-gray-400 text-sm font-medium">Overall Lectures (Scheduled)</h3><p class="text-3xl font-bold text-white mt-2">${overallScheduled}</p></div>
+                        <div class="bg-gray-800 p-6 rounded-2xl border border-green-500/30"><h3 class="text-green-300 text-sm font-medium">Attended Lectures</h3><p class="text-3xl font-bold text-white mt-2">${present}</p></div>
+                        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700"><h3 class="text-gray-400 text-sm font-medium">Lectures Happened</h3><p class="text-3xl font-bold text-white mt-2">${lecturesHappened}</p></div>
+                        <div class="bg-gray-800 p-6 rounded-2xl border border-red-500/30"><h3 class="text-red-300 text-sm font-medium">Absent</h3><p class="text-3xl font-bold text-white mt-2">${absent}</p></div>
+                        <div class="bg-gray-800 p-6 rounded-2xl border border-yellow-500/30"><h3 class="text-yellow-300 text-sm font-medium">Cancelled</h3><p class="text-3xl font-bold text-white mt-2">${cancelled}</p></div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const getCalculatorHTML = () => `
+            <div class="p-4 sm:p-6 md:p-8 flex items-center justify-center">
+              <div class="w-full max-w-lg">
+                <h1 class="text-3xl font-bold text-white mb-6 text-center">Attendance Calculator</h1>
+                <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 space-y-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="text-sm font-medium text-gray-400 block mb-2">Total Classes Held</label>
+                      <input type="number" id="calc-total" class="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition duration-300 input-glow-persistent" />
+                    </div>
+                    <div>
+                      <label class="text-sm font-medium text-gray-400 block mb-2">Classes Attended</label>
+                      <input type="number" id="calc-attended" class="w-full p-3 text-white bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition duration-300 input-glow-persistent" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-sm font-medium text-gray-400 block mb-2">Required Percentage: <span id="req-percent-display">75</span>%</label>
+                    <input type="range" id="calc-required" min="1" max="100" value="75" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
+                  </div>
+                  <button id="calc-button" class="w-full py-3 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500 transition duration-200">
+                    Calculate
+                  </button>
+                  <div id="calc-result" class="hidden p-4 rounded-lg text-center border"></div>
+                </div>
+              </div>
+            </div>
+        `;
+
+        // --- RENDER FUNCTION ---
+        const renderPage = () => {
+            switch (currentPage) {
+                case 'timetable': mainContent.innerHTML = getTimetableHTML(); break;
+                case 'report': mainContent.innerHTML = getReportHTML(); break;
+                case 'calculator': mainContent.innerHTML = getCalculatorHTML(); break;
+                case 'upload': mainContent.innerHTML = getUploadHTML(); break;
+            }
+            // Re-attach event listeners for the newly created content
+            attachDynamicEventListeners();
+        };
+        
+        // --- NAVIGATION & PAGE DISPLAY ---
+        const showPage = (page) => {
+            if (page === 'login') {
+                loginPage.classList.remove('hidden');
+                mainApp.classList.add('hidden');
+            } else {
+                loginPage.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                currentPage = page;
+                navButtons.forEach(btn => {
+                    if (btn.dataset.page === page) {
+                        btn.className = 'nav-button capitalize px-3 py-2 rounded-md text-sm font-medium transition-colors bg-gray-900 text-white';
+                    } else {
+                        btn.className = 'nav-button capitalize px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-300 hover:bg-gray-700 hover:text-white';
+                    }
+                });
+                renderPage();
+            }
+        };
+
+        // --- DYNAMIC EVENT LISTENERS ---
+        function attachDynamicEventListeners() {
+            if(currentPage === 'timetable') {
+                document.getElementById('toggle-edit-timetable').addEventListener('click', handleToggleEditMode);
+                document.querySelectorAll('.status-select').forEach(el => el.addEventListener('change', handleStatusChange));
+                
+                if(isTimetableEditMode) {
+                    document.querySelectorAll('.edit-button').forEach(el => el.addEventListener('click', handleEditClick));
+                    document.querySelectorAll('.delete-button').forEach(el => el.addEventListener('click', handleDeleteClick));
+                    document.querySelectorAll('.add-lecture-button').forEach(el => el.addEventListener('click', handleAddClick));
+                }
+            }
+            if(currentPage === 'upload') {
+                document.getElementById('file-upload').addEventListener('change', handleFileChange);
+                const processBtn = document.getElementById('process-button');
+                if (processBtn) {
+                    processBtn.addEventListener('click', () => {
+                        // This is a placeholder as PDF processing is complex.
+                        // In a real app, you'd parse the PDF here.
+                        alert('PDF processing is a demo feature. Navigating to timetable so you can see the data.');
+                        showPage('timetable');
+                    });
+                }
+            }
+            if(currentPage === 'calculator') {
+                document.getElementById('calc-button').addEventListener('click', calculateAttendance);
+                document.getElementById('calc-required').addEventListener('input', (e) => {
+                    document.getElementById('req-percent-display').textContent = e.target.value;
+                });
+            }
+        }
+        
+        // --- EVENT HANDLERS ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+            const errorEl = document.getElementById('auth-error');
+            errorEl.textContent = '';
+            
+            const validatePassword = (pass) => {
+                const re = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,}$/;
+                return re.test(pass);
+            }
+
+            if (authMode === 'signup') {
+                const confirmPassword = document.getElementById('confirm-password-input').value;
+                if (!validatePassword(password)) {
+                  errorEl.textContent = 'Password: 8+ chars, with uppercase, lowercase, number, & special char.';
+                  return;
+                }
+                if (password !== confirmPassword) {
+                    errorEl.textContent = 'Passwords do not match.';
+                    return;
+                }
+            }
+            
+            // Basic validation
+            if (!email.trim() || !password.trim()) {
+                errorEl.textContent = 'Please fill in all fields.';
+                return;
+            }
+            showPage('upload');
+        }
+
+        function handleToggleEditMode() {
+            isTimetableEditMode = !isTimetableEditMode;
+            renderPage();
+        }
+
+        function handleLogout() {
+            // Reset data if needed
+            showPage('login');
+        }
+
+        function toggleAuthMode() {
+            authMode = authMode === 'login' ? 'signup' : 'login';
+            const subtitle = document.getElementById('auth-mode-subtitle');
+            const buttonText = document.getElementById('auth-submit-button');
+            const toggleText = document.getElementById('auth-toggle-text');
+            const toggleButton = document.getElementById('auth-toggle-button');
+            const confirmPassField = document.getElementById('confirm-password-field');
+            const errorEl = document.getElementById('auth-error');
+
+            errorEl.textContent = '';
+            if (authMode === 'signup') {
+                subtitle.textContent = 'Create an account to get started';
+                buttonText.textContent = 'Sign Up';
+                toggleText.textContent = 'Already have an account?';
+                toggleButton.textContent = 'Sign In';
+                confirmPassField.classList.remove('hidden');
+            } else {
+                subtitle.textContent = 'Sign in to manage your schedule';
+                buttonText.textContent = 'Sign In';
+                toggleText.textContent = "Don't have an account?";
+                toggleButton.textContent = 'Sign Up';
+                confirmPassField.classList.add('hidden');
+            }
+        }
+
+        function handleStatusChange(e) {
+            const { day, id } = e.target.dataset;
+            const newStatus = e.target.value;
+            const lectureIndex = timetableData[day].findIndex(lec => lec.id === id);
+            if (lectureIndex !== -1) {
+                timetableData[day][lectureIndex].status = newStatus;
+                saveData(); // Save changes
+                renderPage();
+            }
+        }
+
+        function handleEditClick(e) {
+            const { day, id } = e.currentTarget.dataset;
+            const lecture = timetableData[day].find(lec => lec.id === id);
+            if(lecture) {
+                editingLectureInfo = { day, id };
+                document.getElementById('modal-title').textContent = 'Edit Lecture';
+                document.getElementById('modal-subject').value = lecture.subject;
+                document.getElementById('modal-time').value = lecture.time;
+                document.getElementById('edit-lecture-modal').classList.replace('hidden', 'flex');
+            }
+        }
+        
+        function handleAddClick(e) {
+            const { day } = e.currentTarget.dataset;
+            editingLectureInfo = { day, id: null }; // No ID means it's a new lecture
+            document.getElementById('modal-title').textContent = 'Add New Lecture';
+            document.getElementById('modal-subject').value = '';
+            document.getElementById('modal-time').value = '';
+            document.getElementById('edit-lecture-modal').classList.replace('hidden', 'flex');
+        }
+
+        function handleDeleteClick(e) {
+            deletingLectureInfo = e.currentTarget.dataset;
+            document.getElementById('delete-confirm-modal').classList.replace('hidden', 'flex');
+        }
+        
+        function handleSaveLecture() {
+            const subject = document.getElementById('modal-subject').value;
+            const time = document.getElementById('modal-time').value;
+
+            if(!subject || !time) return; // Basic validation
+            
+            const { day, id } = editingLectureInfo;
+            if (id) { // Editing existing
+                const lectureIndex = timetableData[day].findIndex(lec => lec.id === id);
+                timetableData[day][lectureIndex] = { ...timetableData[day][lectureIndex], subject, time };
+            } else { // Adding new
+                const newLecture = { id: `${day.slice(0,3).toLowerCase()}-${Date.now()}`, subject, time, status: 'Scheduled' };
+                timetableData[day].push(newLecture);
+            }
+            saveData(); // Save changes
+            closeEditModal();
+            renderPage();
+        }
+        
+        function closeEditModal() {
+            document.getElementById('edit-lecture-modal').classList.replace('flex', 'hidden');
+            editingLectureInfo = null;
+        }
+
+        function confirmDelete() {
+            const { day, id } = deletingLectureInfo;
+            timetableData[day] = timetableData[day].filter(lec => lec.id !== id);
+            saveData(); // Save changes
+            closeDeleteModal();
+            renderPage();
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('delete-confirm-modal').classList.replace('flex', 'hidden');
+            deletingLectureInfo = null;
+        }
+
+        function handleFileChange(e) {
+            const file = e.target.files[0];
+            if(file) {
+                document.getElementById('file-name-display').textContent = `File: ${file.name}`;
+                document.getElementById('process-button-container').classList.remove('hidden');
+            }
+        }
+
+        function calculateAttendance() {
+            const total = parseInt(document.getElementById('calc-total').value);
+            const attended = parseInt(document.getElementById('calc-attended').value);
+            const required = parseFloat(document.getElementById('calc-required').value);
+            const resultEl = document.getElementById('calc-result');
+            
+            resultEl.classList.remove('hidden', 'bg-red-500/20', 'text-red-300', 'border-red-500/30', 'bg-green-500/20', 'text-green-300', 'border-green-500/30', 'bg-yellow-500/20', 'text-yellow-300', 'border-yellow-500/30');
+
+            if (isNaN(total) || isNaN(attended) || total < attended || total <= 0) {
+                resultEl.className = 'p-4 rounded-lg text-center border bg-red-500/20 text-red-300 border-red-500/30';
+                resultEl.innerHTML = `<p class="font-semibold">Please enter valid numbers.</p>`;
+                return;
+            }
+
+            const currentPercentage = (attended / total) * 100;
+            let message = '';
+
+            if (currentPercentage >= required) {
+                let classesToBunk = 0;
+                while (((attended) / (total + classesToBunk + 1)) * 100 >= required) {
+                    classesToBunk++;
+                }
+                resultEl.className = 'p-4 rounded-lg text-center border bg-green-500/20 text-green-300 border-green-500/30';
+                message = `You can safely miss ${classesToBunk} more classes.`;
+            } else {
+                let classesToAttend = 0;
+                while (((attended + classesToAttend) / (total + classesToAttend)) * 100 < required) {
+                    classesToAttend++;
+                }
+                resultEl.className = 'p-4 rounded-lg text-center border bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+                message = `You need to attend ${classesToAttend} more classes.`;
+            }
+
+            resultEl.innerHTML = `
+                <p class="text-sm text-gray-400 mb-1">Current Attendance: ${currentPercentage.toFixed(2)}%</p>
+                <p class="font-semibold">${message}</p>`;
+        }
+        
+        // --- INITIAL SETUP & GLOBAL LISTENERS ---
+        document.getElementById('auth-form').addEventListener('submit', handleLogin);
+        document.getElementById('auth-toggle-button').addEventListener('click', toggleAuthMode);
+        document.getElementById('logout-button').addEventListener('click', handleLogout);
+        navButtons.forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)));
+
+        document.getElementById('modal-cancel').addEventListener('click', closeEditModal);
+        document.getElementById('modal-save').addEventListener('click', handleSaveLecture);
+        
+        document.getElementById('delete-cancel').addEventListener('click', closeDeleteModal);
+        document.getElementById('delete-confirm').addEventListener('click', confirmDelete);
+
+        // Initial load and render
+        loadData();
+        showPage('login');
+    </script>
+
+</body>
+
+</html>
