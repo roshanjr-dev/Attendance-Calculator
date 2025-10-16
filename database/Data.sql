@@ -7,6 +7,15 @@ email VARCHAR(100) UNIQUE,
 password VARCHAR(100)
 );
 
+// use above part only for tomorrow minproject code
+  
+
+
+
+
+
+// dont refer this till now
+
 CREATE TABLE timetables(
 table_id INT AUTO_INCREMENT PRIMARY KEY,
 user_id INT,
